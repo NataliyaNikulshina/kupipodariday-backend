@@ -1,10 +1,23 @@
-import { Controller, Req, Get, Post, Body, Patch, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Req,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { FindUserDto } from './dto/find-users.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Wish } from '../wishes/entities/wishes.entity';
+import { JwtGuard } from '../auth/guards/jwt.guard';
+import { PasswordUserInterceptor } from '../interceptors/password-user.interceptor';
 
+@UseGuards(JwtGuard)
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
@@ -14,9 +27,10 @@ export class UsersController {
     return this.usersService.create(user);
   }
 
+  @UseInterceptors(PasswordUserInterceptor)
   @Get('me')
-  findOne(@Req() req): Promise<User> {
-    return this.usersService.findUserById(req.user.id);
+  async findOne(@Req() { user: { id } }): Promise<User> {
+    return await this.usersService.findUserById(id);
   }
 
   @Get('me/wishes')

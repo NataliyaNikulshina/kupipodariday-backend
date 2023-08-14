@@ -41,7 +41,7 @@ export class OffersService {
   }
 
   async create(user: User, dto: CreateOfferDto): Promise<Offer> {
-    const wish = await this.wishesService.findOne(dto.itemId);
+    const wish = await this.wishesService.findById(dto.itemId);
     if (!wish) {
       throw new NotFoundException('Подарки не найдены');
     }
