@@ -1,8 +1,7 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-// import { WishesService } from '../wishes/wishes.service';
+import { Repository, FindOneOptions } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { HashService } from '../hash/hash.service';
 import { FindUserDto } from './dto/find-users.dto';
@@ -14,7 +13,6 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    // private wishesService: WishesService,
     @InjectRepository(Wish)
     private readonly wishRepository: Repository<Wish>,
     private hashService: HashService,
@@ -32,9 +30,13 @@ export class UsersService {
         'Пользователь с такой почтой уже зарегистрирован',
       );
     }
-    const user = this.userRepository.create(dto);
-    user.password = await this.hashService.generateHash(password);
-    return await this.userRepository.save(user);
+    const userNew = this.userRepository.create(dto);
+    userNew.password = await this.hashService.generateHash(password);
+    return await this.userRepository.save(userNew);
+  }
+
+  findOne(query: FindOneOptions<User>) {
+    return this.userRepository.findOne(query);
   }
 
   async findUserById(id: number): Promise<User> {
@@ -46,19 +48,19 @@ export class UsersService {
   }
 
   async findByUsername(username: string): Promise<User> {
-    const user = await this.userRepository.findOneBy({ username });
-    if (!user) {
-      throw new ForbiddenException('Пользователь не найден');
-    }
-    return user;
+    return await this.userRepository.findOne({
+      where: {
+        username: username,
+      },
+    });
   }
 
   async findByEmail(email: string): Promise<User> {
-    const user = await this.userRepository.findOneBy({ email });
-    if (!user) {
-      throw new ForbiddenException('Пользователь не найден');
-    }
-    return user;
+    return await this.userRepository.findOne({
+      where: {
+        email: email,
+      },
+    });
   }
 
   async findMany({ query }: FindUserDto): Promise<User[]> {

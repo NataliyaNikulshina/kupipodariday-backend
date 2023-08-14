@@ -9,24 +9,14 @@ import { Wish } from '../wishes/entities/wishes.entity';
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  @Get('me')
-  findOne(@Req() req): Promise<User> {
-    return this.usersService.findUserById(req.user.id);
-  }
-
   @Post()
   create(@Body() user) {
     return this.usersService.create(user);
   }
 
-  @Patch('me')
-  update(@Req() req, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.updateOne(req.user.id, updateUserDto);
-  }
-
-  @Post('find')
-  findMany(@Body() findUserDto: FindUserDto) {
-    return this.usersService.findMany(findUserDto);
+  @Get('me')
+  findOne(@Req() req): Promise<User> {
+    return this.usersService.findUserById(req.user.id);
   }
 
   @Get('me/wishes')
@@ -38,5 +28,15 @@ export class UsersController {
   async getWishesByUsername(@Param('username') username: string) {
     const user = await this.usersService.findByUsername(username);
     return this.usersService.getWishes(user.id);
+  }
+
+  @Patch('me')
+  update(@Req() req, @Body() dto: UpdateUserDto) {
+    return this.usersService.updateOne(req.user.id, dto);
+  }
+
+  @Post('find')
+  findMany(@Body() dto: FindUserDto) {
+    return this.usersService.findMany(dto);
   }
 }

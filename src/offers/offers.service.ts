@@ -39,4 +39,51 @@ export class OffersService {
     }
     return offers;
   }
+
+  async create(user: User, dto: CreateOfferDto): Promise<Offer> {
+    const wish = await this.wishesService.findOne(dto.itemId);
+    if (!wish) {
+      throw new NotFoundException('Подарки не найдены');
+    }
+    if (user.id === wish.owner.id) {
+      throw new ForbiddenException('Это ваш подарок');
+    }
+    const sum = Number(wish.raised) + Number(dto.amount);
+    if (sum > wish.price) {
+      throw new ForbiddenException(
+        'Сумма для исполнения превышает стоимость подарка',
+      );
+    }
+
+    wish.raised = sum;
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      await this.wishesService.updateRaised(wish.id, wish.raised);
+
+      const offer = await this.offersRepository.create({
+        ...dto,
+        user: user,
+        item: wish,
+      });
+
+      delete offer.user.password;
+      delete offer.user.email;
+      delete offer.item.password;
+      delete offer.item.email;
+
+      if (!offer.hidden) {
+        delete offer.user.username;
+      }
+
+      return await this.offersRepository.save(offer);
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+    } finally {
+      await queryRunner.release();
+    }
+  }
 }

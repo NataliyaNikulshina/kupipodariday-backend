@@ -40,7 +40,7 @@ export class WishesService {
       ],
     });
     if (!wish) {
-      throw new NotFoundException('Желание не найдено');
+      throw new NotFoundException('Подарок не найден');
     }
     return wish;
   }
@@ -48,14 +48,14 @@ export class WishesService {
   async removeOne(wishId: number, userId: number) {
     const wish = await this.findOne(wishId);
     if (!wish) {
-      throw new NotFoundException('Желание не найдено');
+      throw new NotFoundException('Подарок не найден');
     }
     if (userId !== wish.owner.id) {
-      throw new ForbiddenException('Это не ваше желание');
+      throw new ForbiddenException('Это не ваш подарок');
     }
     if (wish.raised !== 0 && wish.offers.length !== 0) {
       throw new ForbiddenException(
-        'Желание уже исполняется и его нельзя удалить',
+        'Подарок уже исполняется и его нельзя изменить',
       );
     }
     await this.wishesRepository.delete(wishId);
@@ -74,12 +74,27 @@ export class WishesService {
       );
     }
     if (!wish) {
-      throw new NotFoundException('Подарок не найдено');
+      throw new NotFoundException('Подарок не найден');
     }
     return await this.wishesRepository.update(wishId, dto);
   }
 
+  async updateRaised(wishId: number, raised: number) {
+    return await this.wishesRepository.update(wishId, { raised: raised });
+  }
+
   findMany(query: FindManyOptions<Wish>) {
     return this.wishesRepository.find(query);
+  }
+
+  async findById(id: number) {
+    const wish = await this.wishesRepository.findOne({
+      where: { id },
+      relations: ['owner'],
+    });
+    if (!wish) {
+      throw new NotFoundException('Подарок не найдено');
+    }
+    return wish;
   }
 }
