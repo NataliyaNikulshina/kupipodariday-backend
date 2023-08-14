@@ -8,7 +8,7 @@ interface RequestUser extends Request {
   user: User;
 }
 
-@Controller('auth')
+@Controller('')
 export class AuthController {
   constructor(
     private usersService: UsersService,
