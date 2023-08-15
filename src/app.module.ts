@@ -5,28 +5,29 @@ import { UsersModule } from './users/users.module';
 import { WishesModule } from './wishes/wishes.module';
 import { WishlistsModule } from './wishlists/wishlists.module';
 import { OffersModule } from './offers/offers.module';
-import { ConfigModule } from '@nestjs/config';
-import { User } from './users/entities/user.entity';
-import { Wish } from './wishes/entities/wishes.entity';
-import { Wishlist } from './wishlists/entities/wishlists.entity';
-import { Offer } from './offers/entities/offers.entity';
-import configuration from './configuration';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import dbConfig from './config/db.config';
 import { AuthModule } from './auth/auth.module';
 import { WinstonModule } from 'nest-winston';
 import * as winston from 'winston';
+import * as Joi from 'joi';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ load: [configuration] }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: configuration().host,
-      port: Number(configuration().port),
-      username: configuration().username,
-      password: configuration().password,
-      database: configuration().database,
-      entities: [User, Wish, Offer, Wishlist],
-      synchronize: configuration().synchronize,
+    ConfigModule.forRoot({
+      validationSchema: Joi.object({
+        POSTGRES_HOST: Joi.string().required(),
+        POSTGRES_PORT: Joi.number().required(),
+        POSTGRES_USERNAME: Joi.string().required(),
+        POSTGRES_PASSWORD: Joi.string().required(),
+        POSTGRES_DB: Joi.string().required(),
+        POSTGRES_SYNCHRONIZE: Joi.boolean(),
+      }),
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: dbConfig,
     }),
     UsersModule,
     WishesModule,

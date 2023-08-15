@@ -18,7 +18,6 @@ import { Wish } from './entities/wishes.entity';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
 import { PasswordWishInterceptor } from 'src/interceptors/password-wish.interceptor';
 
-@UseGuards(JwtGuard)
 @Controller('wishes')
 export class WishesController {
   constructor(private readonly wishesService: WishesService) {}
@@ -33,6 +32,7 @@ export class WishesController {
     return await this.wishesService.findTop();
   }
 
+  @UseGuards(JwtGuard)
   @UseInterceptors(PasswordWishInterceptor)
   @Get(':id')
   async getWishById(
@@ -42,6 +42,7 @@ export class WishesController {
     return await this.wishesService.findByIdWithOffer(id, wishId);
   }
 
+  @UseGuards(JwtGuard)
   @Post()
   async create(
     @Req() { user: { id } },
@@ -50,6 +51,7 @@ export class WishesController {
     return await this.wishesService.create(id, dto);
   }
 
+  @UseGuards(JwtGuard)
   @Patch(':id')
   async updateOne(
     @Req() req,
@@ -59,6 +61,7 @@ export class WishesController {
     return await this.wishesService.updateOne(+id, updatedWish, req.user.id);
   }
 
+  @UseGuards(JwtGuard)
   @Delete(':id')
   async removeOne(@Param('id', ParseIntPipe) id: number, @Req() req) {
     return this.wishesService.removeOne(id, req.user.id);

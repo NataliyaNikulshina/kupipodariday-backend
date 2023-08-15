@@ -4,12 +4,13 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { WishesService } from '../wishes/wishes.service';
 import { CreateWishlistDto } from './dto/create-wishlist.dto';
 import { UpdateWishlistDto } from './dto/update-wishlist.dto';
 import { Wishlist } from './entities/wishlists.entity';
 import { User } from '../users/entities/user.entity';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class WishlistsService {
@@ -17,21 +18,31 @@ export class WishlistsService {
     @InjectRepository(Wishlist)
     private readonly wishlistsRepository: Repository<Wishlist>,
     private readonly wishesService: WishesService,
+    private readonly usersService: UsersService,
+    private readonly dataSource: DataSource,
   ) {}
 
-  async create(owner: User, dto: CreateWishlistDto) {
-    delete owner.password;
-    delete owner.email;
-    const wishes = await this.wishesService.findMany({});
-    const items = dto.itemsId.map((item) => {
-      return wishes.find((wish) => wish.id === item);
-    });
-    const wishList = this.wishlistsRepository.create({
-      ...dto,
-      owner: owner,
-      items: items,
-    });
-    return this.wishlistsRepository.save(wishList);
+  async create(userId: number, dto: CreateWishlistDto) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const { itemsId, ...rest } = dto;
+      const items = await this.wishesService.getWishListById(itemsId);
+      const owner = await this.usersService.findUserById(userId);
+
+      const wishList = await this.wishlistsRepository.save({
+        ...rest,
+        items,
+        owner,
+      });
+      await queryRunner.commitTransaction();
+      return wishList;
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async findById(id: number) {

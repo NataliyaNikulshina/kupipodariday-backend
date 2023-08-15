@@ -1,8 +1,8 @@
 {
   "name": "kupipodariday-backend",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "API для сервиса вишлистов, где каждый зарегистрированный пользователь может рассказать о том, какой подарок он бы хотел получить, а также скинуться на подарок для другого пользователя, указав сумму, которую готов на это потратить.",
+  "author": "Nataliya Nikulshina",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
@@ -33,6 +33,7 @@
     "bcrypt": "^5.1.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.13.2",
+    "joi": "^17.9.2",
     "nest-winston": "^1.9.3",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",

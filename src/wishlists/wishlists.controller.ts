@@ -7,12 +7,15 @@ import {
   Patch,
   Post,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateWishlistDto } from './dto/create-wishlist.dto';
 import { WishlistsService } from './wishlists.service';
 import { UpdateWishlistDto } from './dto/update-wishlist.dto';
+import { JwtGuard } from '../auth/guards/jwt.guard';
 
-@Controller('wishlists')
+@UseGuards(JwtGuard)
+@Controller('wishlistlists')
 export class WishlistsController {
   constructor(private wishlistsService: WishlistsService) {}
 
@@ -27,8 +30,8 @@ export class WishlistsController {
   }
 
   @Post()
-  async create(@Body() dto: CreateWishlistDto, @Req() req) {
-    return this.wishlistsService.create(req.user, dto);
+  async create(@Body() dto: CreateWishlistDto, @Req() { user: { id } }) {
+    return this.wishlistsService.create(id, dto);
   }
 
   @Patch(':id')
